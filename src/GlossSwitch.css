@@ -1,0 +1,96 @@
+/*
+ * GlossSwitch: a tactile pill switch.
+ * Raised casing (.gsw-ui), recessed track (.gsw-track), domed knob (.gsw-knob) with an engraved compass.
+ * Colours come from Sakani UI tokens (--color-success-solid, --color-border-focus, --color-bg-canvas,
+ * --color-fg-default, --color-fg-muted), each with a plain fallback so it also works without Sakani UI. Dark theme: put the `dark` class on any ancestor.
+ */
+/* ---------------- Gloss Switch ---------------- */
+.gsw {
+  --ease-spring: cubic-bezier(.3, 1.35, .5, 1);
+  --rim-a: #f6f6f7; --rim-b: #ececee; --rim-c: #e0e0e3; --rim-line: rgba(0, 0, 0, .05);
+  --off-a: #d6d6d8; --off-b: #bdbdc0; --off-text: rgba(0, 0, 0, .38);
+  --on-a: color-mix(in oklab, var(--color-success-solid, #12b76a) 46%, #b9e8cd); --on-b: color-mix(in oklab, var(--color-success-solid, #12b76a) 72%, #1f6b47);
+  --knob-a: #ffffff; --knob-b: #efefef; --knob-c: #d9d9d9; --knob-shadow: rgba(0, 0, 0, .34);
+  display: inline-flex; align-items: center; gap: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.dark .gsw {
+  --rim-a: #46464a; --rim-b: #3b3b3f; --rim-c: #323236; --rim-line: rgba(255, 255, 255, .05);
+  --off-a: #232326; --off-b: #161618; --off-text: rgba(255, 255, 255, .34);
+  --on-a: color-mix(in oklab, var(--color-success-solid, #12b76a) 54%, #a3dcba); --on-b: color-mix(in oklab, var(--color-success-solid, #12b76a) 74%, #15563a);
+  --knob-a: #fafafa; --knob-b: #dedede; --knob-c: #bdbdbd; --knob-shadow: rgba(0, 0, 0, .7);
+}
+.gsw.is-disabled { cursor: not-allowed; opacity: .5; }
+.gsw--sm .gsw-ui { font-size: 28px; }
+.gsw--md .gsw-ui { font-size: 40px; }
+.gsw--lg .gsw-ui { font-size: 64px; }
+.gsw--xl .gsw-ui { font-size: 120px; }
+.gsw-input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }
+
+.gsw-ui { position: relative; flex: none; width: 2em; height: 1em; border-radius: 1em; touch-action: pan-y; box-sizing: border-box;
+  background: linear-gradient(180deg, var(--rim-a) 0%, var(--rim-b) 50%, var(--rim-c) 100%);
+  box-shadow: 0 0 0 .008em var(--rim-line), 0 .02em .05em rgba(0, 0, 0, .12), inset 0 .012em 0 rgba(255, 255, 255, .7);
+  transition: box-shadow 200ms ease, transform 140ms ease-out; }
+.dark .gsw-ui { box-shadow: 0 0 0 .008em var(--rim-line), 0 .025em .06em rgba(0, 0, 0, .4), inset 0 .012em 0 rgba(255, 255, 255, .12); }
+.gsw-input:focus-visible + .gsw-ui { box-shadow: 0 0 0 .04em var(--color-bg-canvas, #ffffff), 0 0 0 .075em var(--color-border-focus, #2e90fa); }
+
+/* recessed track: green when on, neutral when off, cross-faded */
+.gsw-track { position: absolute; inset: .04em; border-radius: 1em; overflow: hidden; background: linear-gradient(180deg, var(--off-a), var(--off-b)); transition: filter 140ms ease-out, box-shadow 140ms ease-out;
+  box-shadow: inset 0 .04em .07em rgba(0, 0, 0, .28), inset 0 -.02em .03em rgba(255, 255, 255, .16); }
+.gsw-track::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, var(--on-a), var(--on-b)); opacity: calc(var(--p) * 1); transition: opacity 340ms ease; }
+.gsw-ui.is-dragging .gsw-track::before { transition: none; }
+.gsw-ui.is-on:not(.is-dragging) .gsw-track::before { opacity: 1; }
+/* the on state is a deep well: shaded walls, a glassy sheen on the upper half and light bouncing back up from the bottom */
+.gsw-track::after { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; opacity: var(--p); transition: opacity 340ms ease;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26) 0%, rgba(255, 255, 255, .06) 42%, rgba(255, 255, 255, 0) 50%),
+    radial-gradient(ellipse 70% 55% at 50% 118%, rgba(200, 255, 225, .34), rgba(200, 255, 225, 0) 70%);
+  box-shadow: inset 0 .085em .16em rgba(0, 38, 16, .5), inset 0 .02em .03em rgba(0, 38, 16, .35), inset .06em 0 .14em rgba(0, 38, 16, .22), inset -.06em 0 .14em rgba(0, 38, 16, .22), inset 0 -.04em .07em rgba(255, 255, 255, .34); }
+.gsw-ui.is-dragging .gsw-track::after { transition: none; }
+.gsw-ui.is-on:not(.is-dragging) .gsw-track::after { opacity: 1; }
+.gsw-text { position: absolute; z-index: 1; top: 50%; font-weight: 700; font-size: .3em; letter-spacing: .02em; line-height: 1; transform: translateY(-50%); pointer-events: none; transition: opacity 260ms ease, transform 420ms var(--ease-spring); }
+.gsw-text--on { left: 27.48%; color: #fff; text-shadow: 0 .02em .04em rgba(0, 0, 0, .25); font-size: .32em; opacity: calc(var(--p) * 1.2 - .1); transform: translate(calc(-50% + (1 - var(--p)) * -.4em), -50%); }
+.gsw-text--off { left: 72.52%; font-size: .27em; color: var(--off-text); opacity: calc(1.1 - var(--p) * 1.3); transform: translate(calc(-50% + var(--p) * .4em), -50%); }
+.gsw-ui.is-dragging .gsw-text { transition: none; }
+/* xl: a little smaller */
+.gsw--xl .gsw-text--on { font-size: .27em; }
+.gsw--xl .gsw-text--off { font-size: .23em; }
+.gsw--sm .gsw-text { display: none; }
+
+/* the domed knob */
+.gsw-knob { position: absolute; left: .095em; top: .095em; width: .81em; height: .81em; border-radius: 50%;
+  transform: translateX(calc(var(--p) * 1em)) scale(1);
+  transform-origin: calc(var(--p) * 100%) 50%;
+  background: radial-gradient(circle at 36% 26%, var(--knob-a) 0%, var(--knob-b) 52%, var(--knob-c) 100%);
+  box-shadow: inset 0 .03em .035em rgba(255, 255, 255, .95), inset 0 -.05em .08em rgba(0, 0, 0, .14), 0 .03em .06em var(--knob-shadow), 0 .1em .18em rgba(0, 0, 0, .2);
+  transition: transform 520ms var(--ease-spring), box-shadow 200ms ease, filter 200ms ease; }
+.gsw-knob::after { content: ''; position: absolute; inset: .09em; border-radius: 50%; background: radial-gradient(circle at 50% 70%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 62%); opacity: .8; pointer-events: none; }
+
+/* the compass: pale, etched into the dome (a faint dark stroke with a white edge underneath) */
+.gsw-compass { position: absolute; inset: .03em; width: calc(100% - .06em); height: calc(100% - .06em); pointer-events: none; overflow: visible;
+  --ink: rgba(70, 76, 90, .2); --north: rgba(214, 84, 70, .3);
+  filter: drop-shadow(0 .006em 0 rgba(255, 255, 255, .85)); }
+.gsw-compass .ring { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+.gsw-compass line { stroke: var(--ink); stroke-linecap: round; }
+.gsw-compass .major { stroke-width: 2.2; }
+.gsw-compass .minor { stroke-width: 1.2; opacity: .8; }
+.gsw-compass .north { fill: var(--north); }
+.gsw-compass .south { fill: var(--ink); opacity: .7; }
+.gsw-compass .hub { fill: rgba(255, 255, 255, .9); stroke: var(--ink); stroke-width: 1.2; }
+.gsw-compass .needle { transform-origin: 50px 50px; transform: rotate(calc((var(--p) - .5) * 180deg)); transition: transform 520ms var(--ease-spring); }
+.gsw-ui.is-dragging .gsw-compass .needle { transition: none; }
+.gsw--sm .gsw-compass .minor, .gsw--sm .gsw-compass .ring { display: none; }
+.gsw-ui.is-dragging .gsw-knob { transition: box-shadow 200ms ease; }
+/* pressed: the whole switch is pushed down. the knob sinks, stretches a touch towards the way it will travel and loses its drop shadow; the track and rim go darker and deeper */
+.gsw-ui.is-pressed { transform: scale(.985); box-shadow: 0 0 0 .008em var(--rim-line), 0 .004em .015em rgba(0, 0, 0, .1), inset 0 .025em .05em rgba(0, 0, 0, .14); }
+.gsw-ui.is-pressed .gsw-track { filter: brightness(.94); box-shadow: inset 0 .08em .14em rgba(0, 0, 0, .42), inset 0 -.02em .03em rgba(255, 255, 255, .08); }
+.gsw-ui.is-pressed .gsw-knob { transform: translateX(calc(var(--p) * 1em)) scaleX(1.09) scaleY(.94); filter: brightness(.95);
+  box-shadow: inset 0 .05em .09em rgba(0, 0, 0, .2), inset 0 -.012em .02em rgba(255, 255, 255, .7), 0 .006em .02em var(--knob-shadow);
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out, filter 120ms ease-out; }
+.gsw-ui.is-pressed.is-dragging .gsw-knob { transition: filter 120ms ease-out; }
+
+.gsw-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gsw-label { font-size: 15px; font-weight: 500; line-height: 1.3; color: var(--color-fg-default, #141414); }
+.gsw-desc { font-size: 13px; line-height: 1.4; color: var(--color-fg-muted, #6b6b70); }
+.row-item .gsw { display: flex; }
+
+@media (prefers-reduced-motion: reduce) { .gsw * { transition-duration: 1ms !important; } }
