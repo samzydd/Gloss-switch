@@ -110,3 +110,7 @@ React 19, TypeScript, Vite 8, and `@sakaniui/react` 0.9 for the tokens, the them
 
 - Motion is pure CSS (custom properties and transitions), so there is no animation library.
 - The knob position is driven by a single `--p` value from 0 to 1. The knob, the green well, the labels and the compass needle all derive from it, which is why dragging stays in sync across all of them.
+
+## License
+
+[MIT](LICENSE) © 2026 samzydd

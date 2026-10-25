@@ -13,6 +13,7 @@
     "animation"
   ],
   "author": "samzydd",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/samzydd/Gloss-switch.git"
